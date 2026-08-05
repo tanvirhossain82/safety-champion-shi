@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { logAudit } from '@/lib/data';
-import { Employee, Evaluation, DEPARTMENTS, MONTH_NAMES, NegativeReason, HrCriteriaBreakdown } from '@/lib/types';
+import { Employee, Evaluation, DEPARTMENTS, MONTH_NAMES, NegativeReason, HrCriteriaBreakdown, SafetyCriteriaBreakdown } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { ROLE_PERMISSIONS, UserRole } from '@/lib/types';
+import { SafetyEvaluationSheet } from '@/components/evaluation/safety-evaluation-sheet';
 
 // ── HR Criteria definitions (following the HR evaluation sheet) ──────────────
 
@@ -124,10 +125,7 @@ export function EvaluationClient() {
         </TabsContent>
 
         <TabsContent value="safety" className="mt-6">
-          <SafetyEvaluation
-            canEvaluate={profile ? can('canEvaluateSafety') : false}
-            profile={profile}
-          />
+          <SafetyEvaluationSheet canEvaluate={profile ? can('canEvaluateSafety') : false} />
         </TabsContent>
       </Tabs>
     </div>
