@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  Search, Loader2, SlidersHorizontal, X, Trophy, RotateCcw,
-} from 'lucide-react';
+import { Search, Loader as Loader2, SlidersHorizontal, X, Trophy, RotateCcw } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { computeRanks, RawEvaluationRow } from '@/lib/data';
 import { DEPARTMENTS, MONTH_NAMES, Department } from '@/lib/types';
@@ -134,12 +132,16 @@ export function SearchFiltersClient() {
         department: r.employees.department,
         designation: r.employees.designation,
         joining_date: r.employees.joining_date,
+        month: r.month,
+        year: r.year,
         department_marks: r.department_marks,
         hr_marks: r.hr_marks,
         safety_marks: r.safety_marks,
         negative_marks: r.negative_marks,
         total_marks: r.total_marks,
         remarks: r.remarks,
+        hr_criteria: r.hr_criteria ?? null,
+        safety_criteria: r.safety_criteria ?? null,
       });
     }
 

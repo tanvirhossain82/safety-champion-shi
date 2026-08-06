@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from './supabase/client';
-import { AuditLog } from './types';
+import { AuditLog, HrCriteriaBreakdown, SafetyCriteriaBreakdown } from './types';
 
 export async function logAudit(
   action: string,
@@ -34,12 +34,16 @@ export interface RankedRow {
   department: string;
   designation: string | null;
   joining_date: string;
+  month: number;
+  year: number;
   department_marks: number;
   hr_marks: number;
   safety_marks: number;
   negative_marks: number;
   total_marks: number;
   remarks: string | null;
+  hr_criteria: HrCriteriaBreakdown | null;
+  safety_criteria: SafetyCriteriaBreakdown | null;
   rank: number;
 }
 
@@ -52,23 +56,31 @@ export interface RawEvaluationRow {
   department: string;
   designation: string | null;
   joining_date: string;
+  month: number;
+  year: number;
   department_marks: number;
   hr_marks: number;
   safety_marks: number;
   negative_marks: number;
   total_marks: number;
   remarks: string | null;
+  hr_criteria: HrCriteriaBreakdown | null;
+  safety_criteria: SafetyCriteriaBreakdown | null;
 }
 
 const RANK_SELECT = `
   evaluation_id:id,
   employee_id,
+  month,
+  year,
   department_marks,
   hr_marks,
   safety_marks,
   negative_marks,
   total_marks,
   remarks,
+  hr_criteria,
+  safety_criteria,
   employees!inner (
     employee_code:employee_id,
     name,
