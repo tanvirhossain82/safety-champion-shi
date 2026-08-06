@@ -44,6 +44,7 @@ export interface RankedRow {
   remarks: string | null;
   hr_criteria: HrCriteriaBreakdown | null;
   safety_criteria: SafetyCriteriaBreakdown | null;
+  status: 'Active' | 'Inactive';
   rank: number;
 }
 
@@ -66,6 +67,7 @@ export interface RawEvaluationRow {
   remarks: string | null;
   hr_criteria: HrCriteriaBreakdown | null;
   safety_criteria: SafetyCriteriaBreakdown | null;
+  status: 'Active' | 'Inactive';
 }
 
 const RANK_SELECT = `
@@ -87,7 +89,8 @@ const RANK_SELECT = `
     photo,
     department,
     designation,
-    joining_date
+    joining_date,
+    status
   )
 `;
 

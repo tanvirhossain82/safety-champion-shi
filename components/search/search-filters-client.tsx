@@ -144,6 +144,7 @@ export function SearchFiltersClient() {
         remarks: r.remarks,
         hr_criteria: r.hr_criteria ?? null,
         safety_criteria: r.safety_criteria ?? null,
+        status: r.employees.status,
       });
     }
 

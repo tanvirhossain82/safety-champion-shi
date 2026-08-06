@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Trophy, Loader as Loader2, ArrowUp, ArrowDown, ArrowUpDown, Search, Calendar, Crown, Medal, Award, Users, Star, TrendingUp, Eye, Minus } from 'lucide-react';
+import { Trophy, Loader as Loader2, ArrowUp, ArrowDown, ArrowUpDown, Search, Calendar, Crown, Medal, Award, Users, Star, TrendingUp, Eye, Minus, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { fetchRankedEvaluations, RankedRow } from '@/lib/data';
 import { DEPARTMENTS, MONTH_NAMES, HrCriteriaBreakdown, SafetyCriteriaBreakdown } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -80,6 +81,9 @@ export function LeaderboardClient() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [gradeFilter, setGradeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [evalTypeFilter, setEvalTypeFilter] = useState('all');
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [page, setPage] = useState(0);
@@ -105,8 +109,22 @@ export function LeaderboardClient() {
     const s = search.toLowerCase();
     if (s) r = r.filter((row) => row.name.toLowerCase().includes(s) || row.employee_code.toLowerCase().includes(s));
     if (deptFilter !== 'all') r = r.filter((row) => row.department === deptFilter);
+    if (statusFilter !== 'all') r = r.filter((row) => row.status === statusFilter);
+    if (gradeFilter !== 'all') r = r.filter((row) => {
+      const pct = Math.round((Number(row.total_marks) / MAX_TOTAL) * 100);
+      return getGrade(pct).label === gradeFilter;
+    });
+    if (evalTypeFilter !== 'all') {
+      r = r.filter((row) => {
+        if (evalTypeFilter === 'with_negative') return Number(row.negative_marks) > 0;
+        if (evalTypeFilter === 'no_negative') return Number(row.negative_marks) === 0;
+        if (evalTypeFilter === 'excellent') return Number(row.total_marks) >= 90;
+        if (evalTypeFilter === 'needs_improvement') return Number(row.total_marks) < 60;
+        return true;
+      });
+    }
     return r;
-  }, [rows, search, deptFilter]);
+  }, [rows, search, deptFilter, gradeFilter, statusFilter, evalTypeFilter]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -121,6 +139,23 @@ export function LeaderboardClient() {
     });
     return arr;
   }, [filtered, sortKey, sortDir]);
+
+  const activeFilterCount = [
+    search.trim() !== '',
+    deptFilter !== 'all',
+    gradeFilter !== 'all',
+    statusFilter !== 'all',
+    evalTypeFilter !== 'all',
+  ].filter(Boolean).length;
+
+  const resetFilters = () => {
+    setSearch('');
+    setDeptFilter('all');
+    setGradeFilter('all');
+    setStatusFilter('all');
+    setEvalTypeFilter('all');
+    setPage(0);
+  };
 
   const pageCount = Math.ceil(sorted.length / pageSize) || 1;
   const currentData = sorted.slice(page * pageSize, (page + 1) * pageSize);
@@ -257,18 +292,99 @@ export function LeaderboardClient() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row">
-          <div className="relative flex-1">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <SlidersHorizontal className="h-4 w-4" /> Filters
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="text-xs">{activeFilterCount} active</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search by name or ID..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
+            <Input
+              placeholder="Search by ID or Name..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+            />
           </div>
-          <Select value={deptFilter} onValueChange={(v) => { setDeptFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Department" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Evaluation Period</Label>
+              <div className="flex gap-2">
+                <Select value={String(month)} onValueChange={(v) => { setMonth(Number(v)); setPage(0); }}>
+                  <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MONTH_NAMES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={String(year)} onValueChange={(v) => { setYear(Number(v)); setPage(0); }}>
+                  <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }, (_, i) => now.getFullYear() - i).map((y) => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Department</Label>
+              <Select value={deptFilter} onValueChange={(v) => { setDeptFilter(v); setPage(0); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Evaluation Type</Label>
+              <Select value={evalTypeFilter} onValueChange={(v) => { setEvalTypeFilter(v); setPage(0); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="excellent">Excellent (90+)</SelectItem>
+                  <SelectItem value="needs_improvement">Needs Improvement (&lt;60)</SelectItem>
+                  <SelectItem value="with_negative">With Negative Marks</SelectItem>
+                  <SelectItem value="no_negative">No Negative Marks</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Grade</Label>
+              <Select value={gradeFilter} onValueChange={(v) => { setGradeFilter(v); setPage(0); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Grades</SelectItem>
+                  <SelectItem value="A+">A+ (90+)</SelectItem>
+                  <SelectItem value="A">A (80-89)</SelectItem>
+                  <SelectItem value="B">B (70-79)</SelectItem>
+                  <SelectItem value="C">C (60-69)</SelectItem>
+                  <SelectItem value="D">D (50-59)</SelectItem>
+                  <SelectItem value="F">F (&lt;50)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Status</Label>
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button variant="outline" className="w-full" onClick={resetFilters} disabled={activeFilterCount === 0}>
+                <RotateCcw className="mr-2 h-3.5 w-3.5" /> Reset Filters
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -306,6 +422,7 @@ export function LeaderboardClient() {
                       <TableHead className="cursor-pointer text-right" onClick={() => toggleSort('total_marks')}><SortIcon column="total_marks" />Total</TableHead>
                       <TableHead className="text-center">%</TableHead>
                       <TableHead className="text-center">Grade</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-center">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -332,6 +449,7 @@ export function LeaderboardClient() {
                           <TableCell className="text-right font-bold">{Number(row.total_marks)}</TableCell>
                           <TableCell className="text-center text-sm font-medium">{pct}%</TableCell>
                           <TableCell className="text-center"><Badge variant="outline" className={`font-bold ${grade.color}`}>{grade.label}</Badge></TableCell>
+                          <TableCell className="text-center"><Badge variant={row.status === 'Active' ? 'default' : 'secondary'} className="text-xs">{row.status}</Badge></TableCell>
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" className="h-8" onClick={() => setDetailRow(row)}>
                               <Eye className="h-4 w-4" />
