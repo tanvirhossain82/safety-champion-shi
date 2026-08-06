@@ -2,5 +2,6 @@
   "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/evaluation/page": "app/evaluation/page.js",
-  "/leaderboard/page": "app/leaderboard/page.js"
+  "/leaderboard/page": "app/leaderboard/page.js",
+  "/departments/page": "app/departments/page.js"
 }
