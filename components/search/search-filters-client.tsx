@@ -25,6 +25,8 @@ interface EvalRow {
   negative_marks: number;
   total_marks: number;
   remarks: string | null;
+  hr_criteria: any | null;
+  safety_criteria: any | null;
   employees: {
     employee_id: string;
     name: string;
