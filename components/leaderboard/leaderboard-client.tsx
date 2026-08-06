@@ -16,7 +16,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 
-type SortKey = 'rank' | 'name' | 'employee_code' | 'department' | 'department_marks' | 'hr_marks' | 'safety_marks' | 'negative_marks' | 'total_marks';
+type SortKey = 'rank' | 'name' | 'employee_code' | 'department' | 'department_marks' | 'hr_marks' | 'safety_marks' | 'negative_marks' | 'total_marks' | 'percentage' | 'grade';
 type SortDir = 'asc' | 'desc';
 
 const HR_POSITIVE_CRITERIA: { key: string; label: string; max: number }[] = [
@@ -84,8 +84,8 @@ export function LeaderboardClient() {
   const [gradeFilter, setGradeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [evalTypeFilter, setEvalTypeFilter] = useState('all');
-  const [sortKey, setSortKey] = useState<SortKey>('rank');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [sortKey, setSortKey] = useState<SortKey>('total_marks');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
   const [detailRow, setDetailRow] = useState<RankedRow | null>(null);
   const pageSize = 15;
@@ -134,6 +134,8 @@ export function LeaderboardClient() {
       else if (sortKey === 'employee_code') cmp = a.employee_code.localeCompare(b.employee_code);
       else if (sortKey === 'department') cmp = a.department.localeCompare(b.department);
       else if (sortKey === 'rank') cmp = a.rank - b.rank;
+      else if (sortKey === 'percentage') cmp = (Number(a.total_marks) / MAX_TOTAL) - (Number(b.total_marks) / MAX_TOTAL);
+      else if (sortKey === 'grade') cmp = (Number(a.total_marks) / MAX_TOTAL) - (Number(b.total_marks) / MAX_TOTAL);
       else cmp = (a[sortKey] as number) - (b[sortKey] as number);
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -162,7 +164,11 @@ export function LeaderboardClient() {
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
-    else { setSortKey(key); setSortDir(key === 'rank' || key === 'total_marks' ? 'asc' : 'asc'); }
+    else {
+      setSortKey(key);
+      const textCols: SortKey[] = ['name', 'employee_code', 'department'];
+      setSortDir(textCols.includes(key) ? 'asc' : 'desc');
+    }
   };
 
   const SortIcon = ({ column }: { column: SortKey }) => {
@@ -420,8 +426,8 @@ export function LeaderboardClient() {
                       <TableHead className="cursor-pointer text-right" onClick={() => toggleSort('safety_marks')}><SortIcon column="safety_marks" />Safety</TableHead>
                       <TableHead className="cursor-pointer text-right" onClick={() => toggleSort('negative_marks')}><SortIcon column="negative_marks" />Negative</TableHead>
                       <TableHead className="cursor-pointer text-right" onClick={() => toggleSort('total_marks')}><SortIcon column="total_marks" />Total</TableHead>
-                      <TableHead className="text-center">%</TableHead>
-                      <TableHead className="text-center">Grade</TableHead>
+                      <TableHead className="cursor-pointer text-center" onClick={() => toggleSort('percentage')}><SortIcon column="percentage" />%</TableHead>
+                      <TableHead className="cursor-pointer text-center" onClick={() => toggleSort('grade')}><SortIcon column="grade" />Grade</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-center">Action</TableHead>
                     </TableRow>
