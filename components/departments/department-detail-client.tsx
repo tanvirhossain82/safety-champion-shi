@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Users, ClipboardCheck, Loader2, Trophy, TrendingUp, Award,
   Building2, Boxes, Warehouse, FlaskConical, Droplets, Wrench, Cpu, Search,
-  Plus, Save, CheckCircle2,
+  Plus, Save, CheckCircle2, Pencil, Trash2, GripVertical,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { fetchRankedEvaluations, RankedRow, logAudit } from '@/lib/data';
@@ -30,9 +30,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Building2, Boxes, Warehouse, FlaskConical, Droplets, Wrench, Cpu,
 };
 
-interface KpiCriterion { name: string; max: number; }
+interface KpiCriterion { id?: string; name: string; max: number; sort_order?: number; }
 
-const DEPT_KPI_CONFIG: Record<string, KpiCriterion[]> = {
+const DEFAULT_KPI_CONFIG: Record<string, KpiCriterion[]> = {
   Emulsion: [
     { name: 'Efficiency', max: 10 },
     { name: 'Lead Time', max: 10 },
@@ -102,6 +102,8 @@ export function DepartmentDetailClient({ code }: { code: string }) {
   const [search, setSearch] = useState('');
   const [evalOpen, setEvalOpen] = useState(false);
   const [kpiBreakdowns, setKpiBreakdowns] = useState<Record<string, any>>({});
+  const [kpiCriteria, setKpiCriteria] = useState<KpiCriterion[]>([]);
+  const [criteriaEditOpen, setCriteriaEditOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -137,8 +139,22 @@ export function DepartmentDetailClient({ code }: { code: string }) {
     }
   }, [employees, month, year]);
 
+  const loadKpiCriteria = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('dept_kpi_criteria')
+      .select('*')
+      .eq('department', code)
+      .order('sort_order', { ascending: true });
+    if (data && data.length > 0) {
+      setKpiCriteria(data.map((r) => ({ id: r.id, name: r.name, max: Number(r.max), sort_order: r.sort_order })));
+    } else {
+      setKpiCriteria(DEFAULT_KPI_CONFIG[code] ?? []);
+    }
+  }, [code]);
+
   useEffect(() => { load(); }, [load]);
   useEffect(() => { if (employees.length > 0) loadKpiBreakdowns(); }, [loadKpiBreakdowns]);
+  useEffect(() => { loadKpiCriteria(); }, [loadKpiCriteria]);
 
   const filteredEmployees = employees.filter((e) => {
     const s = search.toLowerCase();
@@ -167,6 +183,7 @@ export function DepartmentDetailClient({ code }: { code: string }) {
   }, [deptRanked]);
 
   const canEvaluate = profile && (profile.role === 'admin' || (profile.role === 'dept_head' && profile.department === code));
+  const canManageCriteria = canEvaluate;
 
   if (loading) {
     return (
@@ -184,6 +201,7 @@ export function DepartmentDetailClient({ code }: { code: string }) {
   }
 
   const Icon = ICON_MAP[department.icon] || Building2;
+  const maxTotal = kpiCriteria.reduce((s, c) => s + c.max, 0);
 
   return (
     <div className="space-y-6">
@@ -200,9 +218,16 @@ export function DepartmentDetailClient({ code }: { code: string }) {
             <p className="text-sm text-muted-foreground">{department.description || 'Department sub-module'}</p>
           </div>
           {canEvaluate && (
-            <Button onClick={() => setEvalOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Department Evaluation
-            </Button>
+            <div className="flex gap-2">
+              {canManageCriteria && (
+                <Button variant="outline" onClick={() => setCriteriaEditOpen(true)} className="gap-2">
+                  <Pencil className="h-4 w-4" /> Edit KPI Criteria
+                </Button>
+              )}
+              <Button onClick={() => setEvalOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Department Evaluation
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -277,6 +302,34 @@ export function DepartmentDetailClient({ code }: { code: string }) {
         </Card>
       </div>
 
+      {/* KPI Criteria summary */}
+      {kpiCriteria.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg"><ClipboardCheck className="h-5 w-5 text-primary" /> KPI Criteria</CardTitle>
+                <CardDescription>{kpiCriteria.length} criteria · Max total: {maxTotal} marks</CardDescription>
+              </div>
+              {canManageCriteria && (
+                <Button variant="outline" size="sm" onClick={() => setCriteriaEditOpen(true)} className="gap-2">
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {kpiCriteria.map((c, idx) => (
+                <Badge key={idx} variant="secondary" className="text-sm py-1.5 px-3">
+                  {c.name} <span className="text-muted-foreground ml-1">({c.max})</span>
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Employees list */}
       <Card>
         <CardHeader>
@@ -339,11 +392,11 @@ export function DepartmentDetailClient({ code }: { code: string }) {
                         <TableCell className="text-right">
                           {kpi ? (
                             <div className="flex items-center justify-end gap-2">
-                              <span className="text-sm font-bold text-primary">{Number(kpi.total)} / 45</span>
+                              <span className="text-sm font-bold text-primary">{Number(kpi.total)} / {maxTotal || 45}</span>
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
                             </div>
                           ) : evalRow ? (
-                            <span className="text-sm font-bold">{Number(evalRow.department_marks)} / 45</span>
+                            <span className="text-sm font-bold">{Number(evalRow.department_marks)} / {maxTotal || 45}</span>
                           ) : (
                             <span className="text-xs text-muted-foreground">Not evaluated</span>
                           )}
@@ -417,13 +470,213 @@ export function DepartmentDetailClient({ code }: { code: string }) {
           department={code}
           month={month}
           year={year}
-          kpiConfig={DEPT_KPI_CONFIG[code] ?? []}
+          kpiConfig={kpiCriteria}
           profile={profile}
           existingBreakdowns={kpiBreakdowns}
           onSaved={() => { load(); loadKpiBreakdowns(); }}
         />
       )}
+
+      {/* KPI Criteria Edit Dialog */}
+      {canManageCriteria && (
+        <KpiCriteriaEditDialog
+          open={criteriaEditOpen}
+          onClose={() => setCriteriaEditOpen(false)}
+          department={code}
+          initialCriteria={kpiCriteria}
+          profile={profile}
+          onSaved={() => { loadKpiCriteria(); }}
+        />
+      )}
     </div>
+  );
+}
+
+// ── KPI Criteria Edit Dialog ──────────────────────────────────────────────
+
+interface KpiCriteriaEditDialogProps {
+  open: boolean;
+  onClose: () => void;
+  department: string;
+  initialCriteria: KpiCriterion[];
+  profile: any;
+  onSaved: () => void;
+}
+
+function KpiCriteriaEditDialog({
+  open, onClose, department, initialCriteria, profile, onSaved,
+}: KpiCriteriaEditDialogProps) {
+  const [criteria, setCriteria] = useState<KpiCriterion[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setCriteria(initialCriteria.map((c) => ({ ...c })));
+    }
+  }, [open, initialCriteria]);
+
+  const totalMax = criteria.reduce((s, c) => s + (Number(c.max) || 0), 0);
+
+  const updateName = (idx: number, name: string) => {
+    setCriteria((prev) => { const next = [...prev]; next[idx] = { ...next[idx], name }; return next; });
+  };
+
+  const updateMax = (idx: number, max: number) => {
+    setCriteria((prev) => { const next = [...prev]; next[idx] = { ...next[idx], max }; return next; });
+  };
+
+  const addCriterion = () => {
+    setCriteria((prev) => [...prev, { name: '', max: 5 }]);
+  };
+
+  const removeCriterion = (idx: number) => {
+    setCriteria((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const moveCriterion = (idx: number, dir: -1 | 1) => {
+    setCriteria((prev) => {
+      const nextIdx = idx + dir;
+      if (nextIdx < 0 || nextIdx >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[nextIdx]] = [next[nextIdx], next[idx]];
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    const valid = criteria.filter((c) => c.name.trim() !== '');
+    if (valid.length === 0) {
+      toast({ title: 'At least one criterion is required', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Delete all existing criteria for this department, then re-insert
+      const { error: delError } = await supabase
+        .from('dept_kpi_criteria')
+        .delete()
+        .eq('department', department);
+
+      if (delError) throw delError;
+
+      const rows = valid.map((c, i) => ({
+        department,
+        name: c.name.trim(),
+        max: Number(c.max) || 0,
+        sort_order: i + 1,
+      }));
+
+      const { error: insError } = await supabase
+        .from('dept_kpi_criteria')
+        .insert(rows);
+
+      if (insError) throw insError;
+
+      await logAudit('UPDATE', 'dept_kpi_criteria', department, `KPI criteria updated for ${department} — ${valid.length} criteria, max total ${valid.reduce((s, c) => s + (Number(c.max) || 0), 0)}`, profile?.email);
+
+      toast({ title: 'KPI criteria updated', description: `${department}: ${valid.length} criteria saved` });
+      onSaved();
+      onClose();
+    } catch (e: any) {
+      toast({ title: 'Save failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="h-5 w-5 text-primary" />
+            Edit KPI Criteria — {department}
+          </DialogTitle>
+          <DialogDescription>
+            Add, remove, reorder, or rename criteria. Max total: {totalMax} marks
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 py-2">
+          <div className="rounded-lg border divide-y">
+            {criteria.map((criterion, idx) => (
+              <div key={idx} className="flex items-center gap-2 px-3 py-2.5">
+                <div className="flex flex-col gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    disabled={idx === 0}
+                    onClick={() => moveCriterion(idx, -1)}
+                  >
+                    <span className="text-xs">▲</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    disabled={idx === criteria.length - 1}
+                    onClick={() => moveCriterion(idx, 1)}
+                  >
+                    <span className="text-xs">▼</span>
+                  </Button>
+                </div>
+                <Input
+                  placeholder="Criterion name..."
+                  value={criterion.name}
+                  onChange={(e) => updateName(idx, e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={50}
+                    step={1}
+                    value={criterion.max}
+                    onChange={(e) => updateMax(idx, Math.max(0, parseFloat(e.target.value) || 0))}
+                    className="w-20 text-center font-semibold"
+                  />
+                  <span className="text-xs text-muted-foreground w-8">max</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => removeCriterion(idx)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          {criteria.length === 0 && (
+            <div className="flex h-20 items-center justify-center text-sm text-muted-foreground">
+              No criteria yet — click &quot;Add Criterion&quot; below
+            </div>
+          )}
+
+          <Button variant="outline" onClick={addCriterion} className="w-full gap-2 border-dashed">
+            <Plus className="h-4 w-4" /> Add Criterion
+          </Button>
+
+          <div className="rounded-lg border bg-muted/30 p-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">Total Max Marks</div>
+            <div className="text-2xl font-bold">{totalMax}</div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Save Criteria
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
