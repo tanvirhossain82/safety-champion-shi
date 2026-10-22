@@ -29,14 +29,14 @@ const HR_POSITIVE_CRITERIA: { key: string; label: string; max: number }[] = [
 ];
 
 const HR_NEGATIVE_CRITERIA: { key: string; label: string; max: number }[] = [
-  { key: 'unauthorized_leave', label: 'Unauthorized Leave', max: 5 },
+  { key: 'unauthorized_leave', label: 'Unauthorized Leave', max: 4 },
   { key: 'lunch_punch_miss', label: 'Lunch Punch Miss', max: 1 },
   { key: 'late_attendance', label: 'Late Attendance', max: 3 },
   { key: 'leave_indiscipline', label: 'Leave Indiscipline', max: 2 },
   { key: 'uniform_miss', label: 'Uniform', max: 2 },
   { key: 'warning_letter', label: 'Warning Letter', max: 5 },
   { key: 'show_cause', label: 'Show Cause', max: 3 },
-  { key: 'misconduct', label: 'Misconduct', max: 10 },
+  { key: 'misconduct', label: 'Misconduct', max: 5 },
 ];
 
 const SAFETY_POSITIVE_CRITERIA: { key: string; label: string; max: number }[] = [
@@ -54,7 +54,7 @@ const SAFETY_NEGATIVE_CRITERIA: { key: string; label: string; max: number }[] = 
   { key: 'safety_instruction', label: 'Safety Instruction', max: 5 },
   { key: 'chemical_spill', label: 'Chemical Spill', max: 5 },
   { key: 'fire_safety_rule', label: 'Fire Safety Rule', max: 5 },
-  { key: 'accident_negligence', label: 'Accident (Negligence)', max: 10 },
+  { key: 'accident_negligence', label: 'Accident (Negligence)', max: 5 },
   { key: 'machine_guard', label: 'Machine Guard', max: 2 },
 ];
 

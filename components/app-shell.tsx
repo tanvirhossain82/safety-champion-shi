@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, ClipboardCheck, Trophy, FileBarChart,
-  ShieldAlert, Shield, ScrollText, LogOut, Menu, X, ChevronRight, Building2, ShieldCheck,
+  ShieldAlert, Shield, ScrollText, LogOut, Menu, X, ChevronRight, Building2, ShieldCheck, HeartHandshake,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { UserRole, ROLE_LABELS, ROLE_PERMISSIONS } from '@/lib/types';
@@ -20,13 +20,22 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   permission?: keyof typeof ROLE_PERMISSIONS[UserRole];
+  children?: NavItem[];
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/departments', label: 'Departments', icon: Building2 },
   { href: '/admin', label: 'Admin', icon: ShieldCheck, permission: 'canManageEmployees' },
-  { href: '/evaluation', label: 'Evaluation', icon: ClipboardCheck },
+  {
+    href: '/evaluation',
+    label: 'Evaluation',
+    icon: ClipboardCheck,
+    children: [
+      { href: '/evaluation/hr', label: 'HR Evaluation', icon: HeartHandshake },
+      { href: '/evaluation/safety', label: 'Safety Evaluation', icon: ShieldCheck },
+    ],
+  },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/reports', label: 'Reports', icon: FileBarChart, permission: 'canViewReports' },
   { href: '/negative-reasons', label: 'Negative Reasons', icon: ShieldAlert, permission: 'canManageNegativeReasons' },
@@ -161,24 +170,51 @@ function SidebarContent({
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 scrollbar-thin">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+          const active = pathname === item.href || (item.children ? pathname.startsWith(item.href + '/') : pathname.startsWith(item.href + '/'));
           const Icon = item.icon;
+          const hasChildren = item.children && item.children.length > 0;
+          const childActive = hasChildren && item.children!.some((child) => pathname === child.href);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                active
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                onClick={onClose}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                  active || childActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="flex-1">{item.label}</span>
+                {(active || childActive) && <ChevronRight className="h-4 w-4" />}
+              </Link>
+              {hasChildren && (childActive || active) && (
+                <div className="ml-4 mt-1 space-y-1 border-l pl-2">
+                  {item.children!.map((child) => {
+                    const childItemActive = pathname === child.href;
+                    const ChildIcon = child.icon;
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onClose}
+                        className={cn(
+                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all',
+                          childItemActive
+                            ? 'font-medium text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )}
+                      >
+                        <ChildIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span>{child.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {active && <ChevronRight className="h-4 w-4" />}
-            </Link>
+            </div>
           );
         })}
       </nav>

@@ -68,6 +68,15 @@ export interface RawEvaluationRow {
   hr_criteria: HrCriteriaBreakdown | null;
   safety_criteria: SafetyCriteriaBreakdown | null;
   status: 'Active' | 'Inactive';
+  employees?: {
+    employee_code: string;
+    name: string;
+    photo: string | null;
+    department: string;
+    designation: string | null;
+    joining_date: string;
+    status: 'Active' | 'Inactive';
+  };
 }
 
 const RANK_SELECT = `
@@ -115,10 +124,32 @@ export function computeRanks(rows: RawEvaluationRow[]): RankedRow[] {
     return new Date(a.joining_date).getTime() - new Date(b.joining_date).getTime();
   });
 
-  return sorted.map((row, idx) => ({
-    ...row,
-    rank: idx + 1,
-  }));
+  return sorted.map((row, idx) => {
+    const emp = (row as any).employees ?? {};
+    const hasNested = !!row.employees;
+    return {
+      evaluation_id: row.evaluation_id,
+      employee_id: row.employee_id,
+      employee_code: hasNested ? emp.employee_code ?? '' : (row as any).employee_code ?? '',
+      name: hasNested ? emp.name ?? '' : (row as any).name ?? '',
+      photo: hasNested ? emp.photo ?? null : (row as any).photo ?? null,
+      department: hasNested ? emp.department ?? '' : (row as any).department ?? '',
+      designation: hasNested ? emp.designation ?? null : (row as any).designation ?? null,
+      joining_date: hasNested ? emp.joining_date ?? new Date().toISOString() : (row as any).joining_date ?? new Date().toISOString(),
+      month: row.month,
+      year: row.year,
+      department_marks: Number(row.department_marks) || 0,
+      hr_marks: Number(row.hr_marks) || 0,
+      safety_marks: Number(row.safety_marks) || 0,
+      negative_marks: Number(row.negative_marks) || 0,
+      total_marks: Number(row.total_marks) || 0,
+      remarks: row.remarks ?? null,
+      hr_criteria: row.hr_criteria ?? null,
+      safety_criteria: row.safety_criteria ?? null,
+      status: hasNested ? emp.status ?? 'Active' : (row as any).status ?? 'Active',
+      rank: idx + 1,
+    };
+  });
 }
 
 export async function fetchAuditLogs(limit = 100): Promise<AuditLog[]> {

@@ -166,3 +166,81 @@
 .animate-fade-in-delay-3 {
   animation: fade-in 0.4s ease-out 0.3s both;
 }
+
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  body.print-incident-form {
+    font-size: 10px !important;
+  }
+
+  .print-hidden,
+  aside,
+  header {
+    display: none !important;
+  }
+
+  .print-report {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.print-incident-form .print-report {
+    display: none !important;
+  }
+
+  body.print-incident-form .print-form {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font-size: 10px !important;
+  }
+
+  body.print-incident-form .print-form button,
+  body.print-incident-form .print-form [data-radix-dialog-close] {
+    display: none !important;
+  }
+
+  body.print-incident-form .print-form .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 8px !important;
+  }
+
+  body.print-incident-form .print-form .gap-4 {
+    gap: 8px !important;
+  }
+
+  body.print-incident-form .print-form .p-4 {
+    padding: 8px !important;
+  }
+
+  body.print-incident-form .print-form input,
+  body.print-incident-form .print-form select {
+    height: 26px !important;
+    min-height: 26px !important;
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
+
+  body.print-incident-form .print-form textarea {
+    min-height: 42px !important;
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+  }
+
+  .print-report table {
+    font-size: 11px;
+  }
+}

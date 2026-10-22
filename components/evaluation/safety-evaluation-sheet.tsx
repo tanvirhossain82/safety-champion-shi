@@ -34,7 +34,7 @@ const NEGATIVE_CRITERIA: Criterion[] = [
   { key: 'safety_instruction', label: 'Safety Instruction', max: 5 },
   { key: 'chemical_spill', label: 'Chemical Spill', max: 5 },
   { key: 'fire_safety_rule', label: 'Fire Safety Rule', max: 5 },
-  { key: 'accident_negligence', label: 'Accident (Negligence)', max: 10 },
+  { key: 'accident_negligence', label: 'Accident (Negligence)', max: 5 },
   { key: 'machine_guard', label: 'Machine Guard', max: 2 },
 ];
 
@@ -181,7 +181,16 @@ export function SafetyEvaluationSheet({ canEvaluate }: { canEvaluate: boolean })
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+          <ShieldCheck className="h-7 w-7 text-accent" />
+          Safety Evaluation
+        </h1>
+        <p className="text-sm text-muted-foreground">Enter monthly safety &amp; compliance marks (max 30 positive marks)</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       <Card className="lg:col-span-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg"><ShieldCheck className="h-5 w-5 text-accent" />{editingId ? 'Edit Safety Performance Sheet' : 'Safety Performance Sheet'}</CardTitle>
@@ -210,9 +219,10 @@ export function SafetyEvaluationSheet({ canEvaluate }: { canEvaluate: boolean })
 
       <Card className="lg:col-span-2"><CardHeader><CardTitle className="text-lg">Existing Safety Evaluations</CardTitle><CardDescription>{MONTH_NAMES[month - 1]} {year} — {filteredExisting.length} total</CardDescription></CardHeader><CardContent>{loading ? <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : filteredExisting.length === 0 ? <div className="flex flex-col items-center justify-center py-8 text-center"><CheckCircle2 className="mb-2 h-8 w-8 text-muted-foreground/40" /><p className="text-sm text-muted-foreground">No evaluations for this month yet</p></div> : <div className="space-y-2">{filteredExisting.map((evaluation: any) => <div key={evaluation.id} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/30"><div className="min-w-0 flex-1"><div className="truncate text-sm font-medium">{evaluation.employees?.name ?? 'Unknown'}</div><div className="text-xs text-muted-foreground">{evaluation.employees?.employee_id} · {evaluation.employees?.department}</div></div><div className="text-right"><Badge variant="secondary" className="font-bold text-accent">{Number(evaluation.safety_marks)}</Badge><div className="text-[10px] text-destructive">-{Number(evaluation.negative_marks)}</div></div><div className="flex gap-1"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(evaluation)}><Pencil className="h-3.5 w-3.5" /></Button>{canDelete && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(evaluation)}><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div>)}</div>}</CardContent></Card>
     </div>
+    </div>
   );
 }
 
 function CriteriaTable({ title, criteria, values, total, maxTotal, color, onChange, negative = false }: { title: string; criteria: Criterion[]; values: Record<string, number>; total: number; maxTotal: number; color: string; onChange: (key: string, value: string, max: number) => void; negative?: boolean }) {
-  return <div className="space-y-2"><div className="flex items-center justify-between"><Label className={`text-sm font-semibold ${color}`}>{title} Marks</Label><Badge variant="secondary" className={`font-bold ${color}`}>{negative ? '-' : ''}{total} / {negative ? '-' : ''}{maxTotal}</Badge></div><div className="overflow-x-auto rounded-lg border"><Table><TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-center">Max</TableHead><TableHead className="text-center">{negative ? 'Deduct' : 'Score'}</TableHead></TableRow></TableHeader><TableBody>{criteria.map((item) => <TableRow key={`${title}-${item.key}`}><TableCell className="text-sm font-medium">{item.label}</TableCell><TableCell className="text-center text-sm text-muted-foreground">{negative ? '-' : ''}{item.max}</TableCell><TableCell className="text-center"><Input type="number" min={0} max={item.max} step="0.5" value={values[item.key] ?? 0} onChange={(event) => onChange(item.key, event.target.value, item.max)} className="mx-auto h-8 w-20 text-center" /></TableCell></TableRow>)}<TableRow className="border-t-2 font-semibold"><TableCell>Total</TableCell><TableCell className="text-center text-muted-foreground">{negative ? '-' : ''}{maxTotal}</TableCell><TableCell className={`text-center ${color}`}>{negative ? '-' : ''}{total}</TableCell></TableRow></TableBody></Table></div></div>;
+  return <div className="space-y-2"><div className="flex items-center justify-between"><Label className={`text-sm font-semibold ${color}`}>{title} Marks</Label><Badge variant="secondary" className={`font-bold ${color}`}>{negative ? '-' : ''}{total} / {negative ? '-' : ''}{maxTotal}</Badge></div><div className="overflow-x-auto rounded-lg border"><Table><TableHeader><TableRow><TableHead>Category</TableHead><TableHead className="text-center">Max</TableHead><TableHead className="text-center">{negative ? 'Deduct' : 'Score'}</TableHead></TableRow></TableHeader><TableBody>{criteria.map((item) => <TableRow key={`${title}-${item.key}`}><TableCell className="text-sm font-medium">{item.label}</TableCell><TableCell className="text-center text-sm text-muted-foreground">{negative ? '-' : ''}{item.max}</TableCell><TableCell className="text-center"><Input type="number" min={0} max={item.max} step="0.5" value={values[item.key] ?? 0} onChange={(event) => onChange(item.key, event.target.value, item.max)} className={`mx-auto h-8 w-20 text-center ${negative ? 'border-destructive/40 text-destructive focus-visible:ring-destructive/40' : ''}`} /></TableCell></TableRow>)}<TableRow className="border-t-2 font-semibold"><TableCell>Total</TableCell><TableCell className="text-center text-muted-foreground">{negative ? '-' : ''}{maxTotal}</TableCell><TableCell className={`text-center ${color}`}>{negative ? '-' : ''}{total}</TableCell></TableRow></TableBody></Table></div></div>;
 }

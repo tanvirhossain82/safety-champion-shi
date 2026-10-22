@@ -48,14 +48,14 @@ const HR_POSITIVE_CRITERIA: CriterionDef[] = [
 ];
 
 const HR_NEGATIVE_CRITERIA: CriterionDef[] = [
-  { key: 'unauthorized_leave', label: 'Unauthorized Leave', max: 5 },
+  { key: 'unauthorized_leave', label: 'Unauthorized Leave', max: 4 },
   { key: 'lunch_punch_miss', label: 'Lunch Punch Miss', max: 1 },
   { key: 'late_attendance', label: 'Late Attendance', max: 3 },
   { key: 'leave_indiscipline', label: 'Leave Indiscipline', max: 2 },
   { key: 'uniform_miss', label: 'Uniform', max: 2 },
   { key: 'warning_letter', label: 'Warning Letter', max: 5 },
   { key: 'show_cause', label: 'Show Cause', max: 3 },
-  { key: 'misconduct', label: 'Misconduct', max: 10 },
+  { key: 'misconduct', label: 'Misconduct', max: 5 },
 ];
 
 const HR_POSITIVE_MAX = 25;

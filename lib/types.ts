@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'hr' | 'safety' | 'dept_head';
 
-export type Department = 'MRP' | 'Warehouse' | 'Emulsion' | 'Solvent' | 'Maintenance' | 'Technical';
+export type Department = 'MRP' | 'Warehouse' | 'Emulsion' | 'Solvent' | 'Maintenance' | 'Technical' | 'General Admin';
 
 export const DEPARTMENTS: Department[] = [
   'MRP',
@@ -9,6 +9,7 @@ export const DEPARTMENTS: Department[] = [
   'Solvent',
   'Maintenance',
   'Technical',
+  'General Admin',
 ];
 
 export const MONTH_NAMES = [
@@ -63,6 +64,27 @@ export interface Evaluation {
   created_by: string | null;
   created_at: string;
   employees?: Employee;
+}
+
+export interface IncidentReport {
+  id: string;
+  incident_id: string;
+  occurred_at: string;
+  department: Department;
+  classification: string;
+  severity: string;
+  person_name: string | null;
+  location: string | null;
+  description: string;
+  root_cause: string;
+  lost_work_days: number;
+  cost_impact: number;
+  investigator_signature: string | null;
+  status: 'Open' | 'Under Investigation' | 'Closed';
+  corrective_action: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface NegativeReason {
