@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, ClipboardCheck, Trophy, FileBarChart,
-  ShieldAlert, Shield, ScrollText, LogOut, Menu, X, ChevronRight, Building2, ShieldCheck, HeartHandshake,
+  ShieldAlert, Shield, ScrollText, LogOut, Menu, X, ChevronRight, Building2, ShieldCheck, HeartHandshake, Settings, UserCog, Users, KeyRound,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { UserRole, ROLE_LABELS, ROLE_PERMISSIONS } from '@/lib/types';
@@ -40,6 +40,18 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/reports', label: 'Reports', icon: FileBarChart, permission: 'canViewReports' },
   { href: '/negative-reasons', label: 'Negative Reasons', icon: ShieldAlert, permission: 'canManageNegativeReasons' },
   { href: '/audit-log', label: 'Audit Log', icon: ScrollText, permission: 'canViewAuditLog' },
+  {
+    href: '/settings',
+    label: 'Settings',
+    icon: Settings,
+    permission: 'canManageUsers',
+    children: [
+      { href: '/settings/user-management', label: 'User Management', icon: Users },
+      { href: '/settings/role-assignment', label: 'Role Assignment', icon: KeyRound },
+      { href: '/settings/department-access', label: 'Department Access', icon: UserCog },
+      { href: '/settings/access-control', label: 'Access Control', icon: ShieldCheck },
+    ],
+  },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
