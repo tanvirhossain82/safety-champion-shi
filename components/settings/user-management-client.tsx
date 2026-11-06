@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Building2, KeyRound, Loader2, Pencil, Save, Search, ShieldCheck, Users, X } from 'lucide-react';
+import { ArrowLeft, Building2, KeyRound, Loader2, Pencil, Save, Search, ShieldCheck, UserPlus, Users, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { logAudit } from '@/lib/data';
 import { DEPARTMENTS, Department, Profile, ROLE_LABELS, UserRole } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
 import { useProfiles } from './use-profiles';
+import { AddUserDialog } from './add-user-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ export function UserManagementClient() {
   const [editing, setEditing] = useState<Profile | null>(null);
   const [form, setForm] = useState({ full_name: '', role: 'dept_head' as UserRole, department: '' as Department | '' });
   const [saving, setSaving] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   const filtered = profiles.filter((p) => {
     const s = search.toLowerCase();
@@ -80,9 +82,9 @@ export function UserManagementClient() {
           <Button variant="ghost" size="sm" asChild className="mb-3 -ml-3"><Link href="/settings"><ArrowLeft className="mr-2 h-4 w-4" /> Settings</Link></Button>
           <div className="flex items-center gap-2 text-sm font-medium text-primary"><Users className="h-4 w-4" /> Settings / User Management</div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">User Management</h1>
-          <p className="text-sm text-muted-foreground">View all system users and update their name, role, and department.</p>
+          <p className="text-sm text-muted-foreground">View all system users, add new ones, and update their name, role, and department.</p>
         </div>
-        <Badge variant="outline" className="w-fit gap-2 border-primary/20 bg-primary/5 px-3 py-1.5 text-primary"><ShieldCheck className="h-4 w-4" /> Administrator</Badge>
+        <div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="w-fit gap-2 border-primary/20 bg-primary/5 px-3 py-1.5 text-primary"><ShieldCheck className="h-4 w-4" /> Administrator</Badge><Button onClick={() => setAddOpen(true)} className="w-fit"><UserPlus className="mr-2 h-4 w-4" /> Add User</Button></div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -133,6 +135,8 @@ export function UserManagementClient() {
           )}
         </CardContent>
       </Card>
+
+      <AddUserDialog open={addOpen} onOpenChange={setAddOpen} onCreated={reload} />
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-md">

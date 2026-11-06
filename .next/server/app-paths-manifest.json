@@ -1,8 +1,6 @@
 {
-  "/audit-log/page": "app/audit-log/page.js",
   "/reports/page": "app/reports/page.js",
   "/leaderboard/page": "app/leaderboard/page.js",
-  "/negative-reasons/page": "app/negative-reasons/page.js",
   "/settings/page": "app/settings/page.js",
   "/evaluation/safety/page": "app/evaluation/safety/page.js",
   "/settings/user-management/page": "app/settings/user-management/page.js"
