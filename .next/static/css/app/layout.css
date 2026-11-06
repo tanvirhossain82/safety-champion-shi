@@ -966,6 +966,9 @@ video {
 .max-h-screen {
   max-height: 100vh;
 }
+.max-h-\[85vh\] {
+  max-height: 85vh;
+}
 .min-h-\[80px\] {
   min-height: 80px;
 }
@@ -1219,6 +1222,9 @@ video {
 }
 .grid-cols-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.grid-cols-\[1fr_96px\] {
+  grid-template-columns: 1fr 96px;
 }
 .flex-row {
   flex-direction: row;
