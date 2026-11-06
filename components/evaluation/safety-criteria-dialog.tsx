@@ -91,7 +91,7 @@ export function SafetyCriteriaDialog({ open, onOpenChange, positive, negative, u
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Safety Score Settings</DialogTitle>
           <DialogDescription>Change category names and maximum points. Existing evaluations keep their saved scores.</DialogDescription>
