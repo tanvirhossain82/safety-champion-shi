@@ -8,7 +8,7 @@ export default function DepartmentDetailPage({ params }: { params: { code: strin
   return (
     <RouteGuard>
       <AppShell>
-        <DepartmentDetailClient code={params.code} />
+        <DepartmentDetailClient code={decodeURIComponent(params.code)} />
       </AppShell>
     </RouteGuard>
   );

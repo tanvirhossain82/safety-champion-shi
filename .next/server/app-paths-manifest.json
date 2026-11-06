@@ -1,9 +1,4 @@
 {
-  "/dashboard/page": "app/dashboard/page.js",
-  "/settings/page": "app/settings/page.js",
-  "/reports/page": "app/reports/page.js",
-  "/negative-reasons/page": "app/negative-reasons/page.js",
-  "/departments/page": "app/departments/page.js",
-  "/settings/access-control/page": "app/settings/access-control/page.js",
-  "/departments/[code]/page": "app/departments/[code]/page.js"
+  "/page": "app/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }
