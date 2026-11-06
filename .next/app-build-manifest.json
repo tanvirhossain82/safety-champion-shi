@@ -40,6 +40,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/leaderboard/page.js"
+    ],
+    "/evaluation/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/evaluation/page.js"
+    ],
+    "/evaluation/hr/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/evaluation/hr/page.js"
+    ],
+    "/evaluation/safety/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/evaluation/safety/page.js"
     ]
   }
 }
