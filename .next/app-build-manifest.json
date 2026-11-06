@@ -55,6 +55,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/evaluation/safety/page.js"
+    ],
+    "/negative-reasons/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/negative-reasons/page.js"
     ]
   }
 }
